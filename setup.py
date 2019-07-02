@@ -5,5 +5,5 @@ from setuptools import setup, find_packages
 setup(
   name="robust_loss_pytorch",
   packages=find_packages(),
-  version="0.0.1",
+  version="0.0.2",
 )
