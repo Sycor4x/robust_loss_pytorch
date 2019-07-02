@@ -136,11 +136,11 @@ class Distribution():
     # the script in fit_partition_spline.py
     # fpath = util.get_resource_as_file('robust_loss_pytorch/data/partition_spline.npz')
     fpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "partition_spline.npz")
-    with fpath as spline_file:
-      with np.load(spline_file, allow_pickle=False) as f:
-        self._spline_x_scale = torch.tensor(f['x_scale'])
-        self._spline_values = torch.tensor(f['values'])
-        self._spline_tangents = torch.tensor(f['tangents'])
+    assert os.path.isfile(fpath)
+    with np.load(fpath, allow_pickle=False) as f:
+      self._spline_x_scale = torch.tensor(f['x_scale'])
+      self._spline_values = torch.tensor(f['values'])
+      self._spline_tangents = torch.tensor(f['tangents'])
 
   def log_base_partition_function(self, alpha):
     r"""Approximate the distribution's log-partition function with a 1D spline.
