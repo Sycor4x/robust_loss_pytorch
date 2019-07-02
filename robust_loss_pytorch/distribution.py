@@ -29,6 +29,7 @@ import numbers
 import mpmath
 import numpy as np
 import torch
+
 from robust_loss_pytorch import cubic_spline
 from robust_loss_pytorch import general
 from robust_loss_pytorch import util
@@ -56,10 +57,10 @@ def analytical_base_partition_function(numer, denom):
   """
   if not isinstance(numer, numbers.Integral):
     raise ValueError('Expected `numer` of type int, but is of type {}'.format(
-        type(numer)))
+      type(numer)))
   if not isinstance(denom, numbers.Integral):
     raise ValueError('Expected `denom` of type int, but is of type {}'.format(
-        type(denom)))
+      type(denom)))
   if not numer >= 0:
     raise ValueError('Expected `numer` >= 0, but is = {}'.format(numer))
   if not denom > 0:
@@ -80,9 +81,9 @@ def analytical_base_partition_function(numer, denom):
   b_q = ((np.arange(-0.5, numer - 0.5, dtype=np.float64)) /
          numer).tolist() + (np.arange(1, 2 * denom, dtype=np.float64) /
                             (2 * denom)).tolist()
-  z = (1. / numer - 1. / (2 * denom))**(2 * denom)
+  z = (1. / numer - 1. / (2 * denom)) ** (2 * denom)
   mult = np.exp(np.abs(2 * denom / numer - 1.)) * np.sqrt(
-      np.abs(2 * denom / numer - 1.)) * (2 * np.pi)**(1 - denom)
+    np.abs(2 * denom / numer - 1.)) * (2 * np.pi) ** (1 - denom)
   return mult * np.float64(mpmath.meijerg([[], a_p], [b_q, []], z))
 
 
@@ -118,10 +119,10 @@ def inv_partition_spline_curve(x):
   x = torch.as_tensor(x)
   assert (x >= 0).all()
   alpha = torch.where(
-      x < 8,
-      0.5 * x + torch.where(x <= 4, 1.25 - torch.sqrt(1.5625 - x + .25 * x**2),
-                            -1.25 + torch.sqrt(9.5625 - 3 * x + .25 * x**2)),
-      3.75 + 0.25 * util.exp_safe(x * 3.6 - 28.8))
+    x < 8,
+    0.5 * x + torch.where(x <= 4, 1.25 - torch.sqrt(1.5625 - x + .25 * x ** 2),
+                          -1.25 + torch.sqrt(9.5625 - 3 * x + .25 * x ** 2)),
+    3.75 + 0.25 * util.exp_safe(x * 3.6 - 28.8))
   return alpha
 
 
@@ -133,7 +134,7 @@ class Distribution():
     # approximates the partition function. This was produced by running
     # the script in fit_partition_spline.py
     with util.get_resource_as_file(
-        'robust_loss_pytorch/data/partition_spline.npz') as spline_file:
+      'robust_loss_pytorch/data/partition_spline.npz') as spline_file:
       with np.load(spline_file, allow_pickle=False) as f:
         self._spline_x_scale = torch.tensor(f['x_scale'])
         self._spline_values = torch.tensor(f['values'])
@@ -248,7 +249,7 @@ class Distribution():
     while not accepted.type(torch.uint8).all():
       # Draw N samples from a Cauchy, our proposal distribution.
       cauchy_sample = torch.reshape(
-          cauchy.sample((np.prod(alpha.shape),)), alpha.shape)
+        cauchy.sample((np.prod(alpha.shape),)), alpha.shape)
       cauchy_sample = cauchy_sample.type(alpha.dtype)
 
       # Compute the likelihood of each sample under its target distribution.
@@ -259,15 +260,15 @@ class Distribution():
       # Bound the NLL. We don't use the approximate loss as it may cause
       # unpredictable behavior in the context of sampling.
       nll_bound = general.lossfun(
-          cauchy_sample,
-          torch.tensor(0., dtype=cauchy_sample.dtype),
-          torch.tensor(1., dtype=cauchy_sample.dtype),
-          approximate=False) + self.log_base_partition_function(alpha)
+        cauchy_sample,
+        torch.tensor(0., dtype=cauchy_sample.dtype),
+        torch.tensor(1., dtype=cauchy_sample.dtype),
+        approximate=False) + self.log_base_partition_function(alpha)
 
       # Draw N samples from a uniform distribution, and use each uniform sample
       # to decide whether or not to accept each proposal sample.
       uniform_sample = torch.reshape(
-          uniform.sample((np.prod(alpha.shape),)), alpha.shape)
+        uniform.sample((np.prod(alpha.shape),)), alpha.shape)
       uniform_sample = uniform_sample.type(alpha.dtype)
       accept = uniform_sample <= torch.exp(nll_bound - nll)
 

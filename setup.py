@@ -6,5 +6,7 @@ setup(
   name="robust_loss_pytorch",
   packages=find_packages(),
   version="0.0.2",
-  include_package_data=True,
+  package_data={
+    "robust_loss_pytorch": ["data/*.npz", "data/*.mat"]
+  }
 )
